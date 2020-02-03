@@ -1,7 +1,8 @@
 apiVersion: extensions/v1beta1
 kind: PodSecurityPolicy
 metadata:
-  name: redis-cart
+  name: autoneg
+  namespace: autoneg-system
 spec:
   privileged: false # Prevents creation of privileged Pods
   seLinux:
@@ -14,4 +15,3 @@ spec:
     rule: RunAsAny
   volumes:
     - "*"
-

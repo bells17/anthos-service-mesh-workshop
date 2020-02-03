@@ -2,7 +2,7 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: redis-cart
+  name: loadgenerator
 rules:
   - apiGroups:
       - extensions
@@ -11,17 +11,17 @@ rules:
     verbs:
       - use
     resourceNames:
-      - redis-cart
+      - loadgenerator
 ---
 # Authorize all service accounts in namespace to use the podsecuritypolicy
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: redis-cart
-  namespace: cart
+  name: loadgenerator
+  namespace: loadgenerator
 roleRef:
   kind: ClusterRole
-  name: redis-cart
+  name: loadgenerator
   apiGroup: rbac.authorization.k8s.io
 subjects:
   - kind: Group
@@ -31,7 +31,7 @@ subjects:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: redis-cart
-  namespace: cart
+  name: loadgenerator
+  namespace: loadgenerator
   annotations:
-    iam.gke.io/gcp-service-account: microservices@${PROJECT_ID}.iam.gserviceaccount.com
+    iam.gke.io/gcp-service-account: microservices@OPS_PROJECT_ID.iam.gserviceaccount.com

@@ -49,6 +49,12 @@ sed -i 's/${PROJECT_ID?}/'${dev2_project_id?}'/g' tmp/${dev2_gke_4_name}/cnrm-sy
 sed -i 's/${PROJECT_ID?}/'${dev3_project_id?}'/g' tmp/${dev3_gke_5_name}/cnrm-system/{install-bundle/0-cnrm-system.yaml,patch-cnrm-system-namespace.yaml}
 sed -i 's/${PROJECT_ID?}/'${dev3_project_id?}'/g' tmp/${dev3_gke_6_name}/cnrm-system/{install-bundle/0-cnrm-system.yaml,patch-cnrm-system-namespace.yaml}
 
+# Copy autoneg-system resources to ops clusters
+for c in ${ops_gke_2_name} ${ops_gke_1_name}; do
+  cp -r config/autoneg-system/ tmp/${c}/
+  sed -i 's/${PROJECT_ID}/'${ops_project_id?}'/g' tmp/${c}/autoneg-system/*.yaml
+done
+
 # Copy generated CA certs to every cluster.
 gsutil cp -r gs://${tfadmin_proj}/ops/istiocerts .
 kubectl create secret generic -n istio-system \
@@ -76,6 +82,7 @@ sed \
   -e "s/POLICY_ILB_IP/${ops_gke_1_policy_ilb?env not set}/g" \
   -e "s/TELEMETRY_ILB_IP/${ops_gke_1_telemetry_ilb?env not set}/g" \
   -e "s/PILOT_ILB_IP/${ops_gke_1_pilot_ilb?env not set}/g" \
+  -e "s/OPS_PROJECT/${ops_project_id}/g" \
   $SRC > $DEST
 
 # Update kustomization
@@ -88,6 +95,7 @@ sed \
   -e "s/POLICY_ILB_IP/${ops_gke_2_policy_ilb?env not set}/g" \
   -e "s/TELEMETRY_ILB_IP/${ops_gke_2_telemetry_ilb?env not set}/g" \
   -e "s/PILOT_ILB_IP/${ops_gke_2_pilot_ilb?env not set}/g" \
+  -e "s/OPS_PROJECT/${ops_project_id}/g" \
   $SRC > $DEST
 
 # Update kustomization
@@ -167,12 +175,14 @@ for d in $(ls -d ${k8s_repo_name}/*/); do
   [[ ! -d "${d}/app-cnrm" ]] && cp -r config/app-cnrm ${d}/
 done
 
-# Copy app-ingress, istio-networking and istio-authentication templates if they don't already exist in ops clusters.
+# Copy app-ingress and istio-networking templates if they don't already exist in ops clusters.
+# Copy istio-telemetry to both Ops clusters
 # Also Copy kustomization.yaml
 for d in ${ops_gke_2_name} ${ops_gke_1_name}; do
   [[ ! -d "${k8s_repo_name}/${d}/app-ingress" ]] && cp -r config/app-ingress ${k8s_repo_name}/${d}/
   [[ ! -d "${k8s_repo_name}/${d}/istio-networking" ]] && cp -r config/istio-networking ${k8s_repo_name}/${d}/
-  [[ ! -d "${k8s_repo_name}/${d}/istio-authentication" ]] && cp -r config/istio-authentication ${k8s_repo_name}/${d}/
+  [[ ! -d "${k8s_repo_name}/${d}/istio-telemetry" ]] && cp -r config/istio-telemetry ${k8s_repo_name}/${d}/
+  [[ ! -d "${k8s_repo_name}/${d}/app-loadgenerator" ]] && cp -r config/app-loadgenerator ${k8s_repo_name}/${d}/
   cp config/kustomization-ops.yaml ${k8s_repo_name}/${d}/kustomization.yaml
 done
 
